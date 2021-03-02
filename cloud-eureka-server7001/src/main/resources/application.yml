@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: euraka7001
+server:
+  port: 7001
+eureka:
+  instance:
+    hostname: eureak7001.com
+    appname: eureka7001
+  server:
+    enable-self-preservation: false #默认开启自我保护机制
+  client:
+    register-with-eureka: false #表示不要向注册中心注册自己
+    fetch-registry: false #表示自己就是注册中心
+    service-url:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/ #设置与eureka server交互的地址查询服务和注册服务都需要依赖这个地址
+      defaultZone: http://eureka7002.com:7002/eureka/
+
