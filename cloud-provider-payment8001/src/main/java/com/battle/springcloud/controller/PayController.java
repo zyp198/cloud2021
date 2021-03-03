@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.TimeUnit;
+
 @RestController
 public class PayController {
     @Autowired
@@ -23,8 +25,9 @@ public class PayController {
         return new CommonResult(404,"数据插入失败",i);
     }
     @GetMapping("/payment/{id}")
-    public CommonResult<Payment> findById(@PathVariable("id") Integer id){
+    public CommonResult<Payment> findById(@PathVariable("id") Integer id) throws InterruptedException {
        Payment payment = paymentService.findById(id);
+       //TimeUnit.SECONDS.sleep(3);
        if (payment != null){
            return new CommonResult(200,"数据查询成功,serverPort="+serverPort,payment);
        }
