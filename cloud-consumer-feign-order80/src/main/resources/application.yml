@@ -11,3 +11,8 @@ eureka:
 logging:
   level:
     com.battle.springcloud.service.PaymentFeignService: debug
+management:
+  endpoints:
+    web:
+      exposure:
+        include: beans
