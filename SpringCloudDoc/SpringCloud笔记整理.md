@@ -18,9 +18,9 @@
 
 **运维的新挑战** 在微服务架构中，运维人员需要管理的进程数量会大大增加，有条不紊的将这些进程编排和组织起来并不是一件容易的事。
 
-**接口的一致性** 虽然我们拆分了服务，但是业务逻辑上的依赖并不会消除	，只是从单体应用中的代码依赖转变成服务间的通信依赖。而当我们对原有接口进行了修改调整，那么交互方也要进行这样的协调。因此，我们需要更加完善的接口和版本管理，或严格的遵循版本管理。	
+**接口的一致性** 虽然我们拆分了服务，但是业务逻辑上的依赖并不会消除，只是从单体应用中的代码依赖转变成服务间的通信依赖。而当我们对原有接口进行了修改调整，那么交互方也要进行这样的协调。因此，我们需要更加完善的接口和版本管理，或严格的遵循版本管理。	
 
-**分布式的复杂性** 由于拆分之后的各个微服务都在自己独立的进程中运行，他们只能通过通信来进行协作，所以分布式环境问题通常是微服务架构设计的要考虑的重要因素，网络延迟、分布式事务、异步消息等。
+**分布式的复杂性** 由于拆分之后的各个微服务都在自己独立的进程中运行，他们只能通过通信来进行协作，所以分布式环境问题通常是微服务架构设计的要考虑的重要因素，网络延迟、**分布式事务**、异步消息等。
 
 ### 与单体系统的区别
 
@@ -113,3 +113,187 @@ Eureka采用了CS设计架构，Eureka Server 作为服务注册功能的服务�
 
 
 ### Zookeeper服务注册与发现
+
+Zookeeper是一个分布式协调工具，可以实现注册中心的功能。
+
+Zk服务器替代Eureka服务器，zk作为服务器的注册中心
+
+zk是c/s架构，但是没有可视化的页面
+
+
+
+### Consul服务注册与发现
+
+没有深入了解。。。
+
+### Ribbon负载均衡和服务调用
+
+#### 什么是负载均衡？什么是服务调用？
+
+简单的说就是将用户的请求平摊的分配到多个服务上，从而达到系统的HA(高可用)。常见的负载均衡软件有Nginx,LVS，硬件等。
+
+#### 什么是Ribbon
+
+![1614911290006](D:\IdeaProject\cloud2020\SpringCloudDoc\SpringCloud笔记整理.assets\1614911290006.png)
+
+#### **Ribbon本地负载均衡客户端VS Nginx服务端负载均衡区别**
+
+1. Nginx是服务器负载均衡，客户端的所有请求都会交给nginx，然后由nginx实现转发请求。即负载均衡是由服务端实现的。
+2. Ribbon本地负载均衡，在调用微服务接口的时候，会在注册中心上获取注册信息服务列表之后缓存到JVM本地，从而在本地实现RPC远程服务调用技术
+
+![1614910980491](D:\IdeaProject\cloud2020\SpringCloudDoc\SpringCloud笔记整理.assets\1614910980491.png)
+
+#### Ribbon在客户端实现负载均衡的原理
+
+后续研究。。。
+
+#### **Ribbon的简单使用**
+
+在配置文件中列出LoadBalancer（简称LB）后面的所有机器
+
+```java
+@SpringBootApplication
+@RibbonClient(name = "CLOUD-PAYMENT-SERVICE",configuration = MyselfRule.class)
+public class Order80ApplicationRibbon {
+    public static void main(String[] args) {
+        SpringApplication.run(Order80ApplicationRibbon.class);
+    }
+}
+```
+
+配置自定义负载均衡的规则
+
+```java
+@Configuration
+public class MyselfRule {
+    @Bean
+    public IRule iRule(){
+        //return new RandomRule(); LB策略 随机数法
+        //return new RoundRobinRule(); 轮询
+        return new WeightedResponseTimeRule();
+    }
+}
+```
+
+controller调用服务
+
+```java
+@RestController
+@Slf4j
+public class OrderController {
+    private static final String URL = "http://CLOUD-PAYMENT-SERVICE";
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+
+    @RequestMapping("/consumer/payment/create")
+    public CommonResult<Payment> create(@RequestBody Payment payment){
+        //去调用Payment的服务接口
+        log.info("调用支付服务的接口");
+        return restTemplate.postForObject(URL+"/payment/create",payment,CommonResult.class);
+    }
+
+    @GetMapping("/consumer/payment/{id}")
+    public CommonResult<Payment> getById(@PathVariable("id")Integer id){
+        log.info("调用支付服务的接口，查询订单");
+        return restTemplate.getForObject(URL+"/payment/"+id,CommonResult.class);
+    }
+}
+```
+
+
+
+客户端的配置:
+
+```yaml
+server:
+  port: 80
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/
+  instance:
+    instance-id: order80
+    prefer-ip-address: true
+spring:
+  application:
+    name: order80
+```
+
+### OpenFeign服务接口调用
+
+#### 什么是Feign？
+
+Feign是一个声明性的Web服务客户端。它使编写Web服务客户端变得更容易。要使用Feign，请创建一个界面并对其进行注释。它具有可**插入**的注释支持，包括Feign注释和JAX-RS注释。Feign还支持**可插拔编码器**和**解码器**。Spring Cloud增加了对Spring MVC注释的支持，并使用了HttpMessageConvertersSpring Web中默认使用的注释。Spring Cloud集成了Ribbon和Eureka，在使用Feign时提供负载均衡的http客户端
+
+Feign，假装、伪装。OpenFeign可以使消费者将提供者提供的服务名伪装为接口进行消费，消费者只需使用“Service接口 + 注解”的方式即可直接调用Service接口方法，**而无需再使用RestTemplate**了
+
+
+#### OpenFeign有什么优势？
+
+![1614912524327](D:\IdeaProject\cloud2020\SpringCloudDoc\SpringCloud笔记整理.assets\1614912524327.png)
+
+#### **Feign和OpenFeign的区别**？
+
+![1614912574046](D:\IdeaProject\cloud2020\SpringCloudDoc\SpringCloud笔记整理.assets\1614912574046.png)
+
+#### OpenFeign简单使用
+
+1. 主启动类需要添加@EnableFeignClients注解
+
+   ```java
+   @SpringBootApplication
+   @EnableFeignClients
+   public class OrderConsumer80 {
+       public static void main(String[] args) {
+           SpringApplication.run(OrderConsumer80.class,args);
+       }
+   }
+   ```
+
+   
+
+2. 业务逻辑接口+@FeignClient配置调用provider服务
+
+   ```java
+   @Component
+   @FeignClient(name = "CLOUD-PAYMENT-SERVICE")
+   public interface PaymentFeignService {
+   
+       @GetMapping("/payment/{id}")
+       public CommonResult<Payment> findById(@PathVariable("id") Integer id);
+   }
+   ```
+
+   
+
+3. 控制层Controller
+
+   ```java
+   @RestController
+   @Slf4j
+   public class OrderController {
+   
+       private static final String URL = "CLOUD-PAYMENT-SERVICE";
+       @Autowired
+       private PaymentFeignService paymentFeignService;
+   
+       @GetMapping("/consumer/payment/{id}")
+       public CommonResult<Payment> payment(@PathVariable("id") Integer id){
+           log.info("查询订单接口");
+           return  paymentFeignService.findById(id);
+       }
+   
+       @GetMapping("/test/dev")
+       String test(){
+           return "devtools";
+       }
+   
+   }
+   ```
+
+   
