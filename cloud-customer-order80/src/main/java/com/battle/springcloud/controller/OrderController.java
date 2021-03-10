@@ -29,4 +29,21 @@ public class OrderController {
         log.info("调用支付服务的接口，查询订单");
         return restTemplate.getForObject(URL+"/payment/"+id,CommonResult.class);
     }
+
+    @GetMapping("/love/say")
+    public String say(){
+        return "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "\t<head>\n" +
+                "\t\t<meta charset=\"utf-8\">\n" +
+                "\t\t<title></title>\n" +
+                "\t</head>\n" +
+                "\t<body background=\"file:///G:/HBuildreWorkspace/HWork-space/img/IMG_20210225_234538.jpg\">\n" +
+                "\t\t<table border=\"0px\" cellspacing=\"\" cellpadding=\"\">\n" +
+                "\t\t\t<font size=\"10000\">jcm,wo shi ni diedie</font>\n" +
+                "\t\t</table>\n" +
+                "\t\t\n" +
+                "\t</body>\n" +
+                "</html>";
+    }
 }
