@@ -14,6 +14,8 @@
         <module>cloud-consumerzk-order80</module>
         <module>cloud-customer-ribbon-order80</module>
         <module>cloud-consumer-feign-order80</module>
+        <module>cloud-provider-hystrix-payment8001</module>
+        <module>cloud-consumer-feign-hystrix-order80</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

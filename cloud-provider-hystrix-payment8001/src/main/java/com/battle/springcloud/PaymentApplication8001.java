@@ -2,14 +2,14 @@ package com.battle.springcloud;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients
 @EnableHystrix
-public class OrderConsumer80 {
+@EnableCircuitBreaker
+public class PaymentApplication8001 {
     public static void main(String[] args) {
-        SpringApplication.run(OrderConsumer80.class,args);
+        SpringApplication.run(PaymentApplication8001.class,args);
     }
 }
